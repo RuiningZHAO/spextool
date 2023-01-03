@@ -85,13 +85,42 @@ pro tspeccals_mkwavecal,w,CANCEL=cancel
 ;  Combine sky frames together using a median.
 
   arccombstat = 6
-  if nimages ne 1 then begin
-     
-     arc = median(data,/EVEN,DIMENSION=3)
-     
-  endif else arc = reform(data)
+  case nimages of
+
+     1: begin
+        
+        arc = reform(data)
+        var = reform(var)
+        
+     end
+;
+;  For the 2-image-case, pure sky is derived by (A+B) - abs(A-B).
+;  (2023-01-03 by RNZ)
+;
+     2: begin
+        
+        arc = (data[*,*,0]+data[*,*,1])- $
+              abs(data[*,*,0]-data[*,*,1])
+        var = 2*total(var,3)
+        
+     end
+
+     else: begin
+;
+;  median is replaced by mc_medcomb, which also returns variance.
+;  (2023-01-03 by RNZ)
+;
+;        arc = median(data,/EVEN,DIMENSION=3)
+;
+        mc_medcomb,data,arc,var,CANCEL=cancel
+        if cancel then goto, out
+        
+     end
+
+  endcase
 
   arc = temporary(arc)/flat
+  var = temporary(var)/flat^2
 
 ; Do the 1D wavelength calibration across all orders
 
