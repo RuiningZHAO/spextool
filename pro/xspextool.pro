@@ -39,7 +39,7 @@
 ; EXAMPLE:
 ;     
 ; MODIFICATION HISTORY:
-;
+;     2023-01-02 - Modified to be compatible with paltspec by RNZ, NAOC
 ;-
 ;*****************************************************************************
 ;
@@ -4173,8 +4173,18 @@ pro xspextool_psextractspec,CANCEL=cancel
   sizes = lonarr(2,ntags)
   
   for i = 0,ntags-1 do sizes[*,i] = size(s.(i),/DIMEN)
-  
-  spec = dblarr(max(sizes),4,ntags)*!values.f_nan
+;
+;  For uspex data, state.r.wctype is '1D', and the dimension of each 
+;  structure tag contained in the returned structure s is x by 4, while 
+;  for paltspec data, state.r.wctype is '2D', and the dimension is x by 3. 
+;  Therefore, the 2nd dimension of spec should be set to an expression 
+;  equal to the real 2nd dimension of the structure tags instead of a 
+;  fixed number (i.e., 4). 
+;  (2023-01-02 by RNZ)
+;
+;  spec = dblarr(max(sizes),4,ntags)*!values.f_nan
+;
+  spec = dblarr(max(sizes),sizes[1,0],ntags)*!values.f_nan
   
   for i = 0,ntags-1 do spec[0:(sizes[0,i]-1),*,i] = s.(i)
 

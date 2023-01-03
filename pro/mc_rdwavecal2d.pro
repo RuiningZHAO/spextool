@@ -65,6 +65,7 @@
 ;     2009-12-03 - Written by M. Cushing, NASA JPL
 ;     2014-05-28 - Modified to read new MEF files.
 ;     2014-08-06 - Added wdisp output.
+;     2022-12-25 - Modified to be compatible with paltspec by RNZ, NAOC
 ;-
 pro mc_rdwavecal2d,ifile,wavecal,spatcal,wctype,xo2w,wdeg,odeg,homeorder, $
                    xy2w,xy2s,wxdeg,wydeg,sxdeg,sydeg,wdisp,$
@@ -86,16 +87,23 @@ pro mc_rdwavecal2d,ifile,wavecal,spatcal,wctype,xo2w,wdeg,odeg,homeorder, $
   if cancel then return
 
   tmp = mrdfits(ifile,0,hdr,/SILENT)
-  wavecal = mrdfits(ifile,1,/SILENT)
-  spatcal = mrdfits(ifile,2,/SILENT)
-
-  if n_elements(ROTATE) ne 0 then begin
-
-     wavecal = rotate(temporary(wavecal),rotate)
-     spatcal = rotate(temporary(spatcal),rotate)
-
-  endif
-
+;
+;  Since the wavecal file generated for paltspec data has only one 
+;  extension, the code below (trying to access the 2nd and the 3rd 
+;  extensions) may lead to an EOF error. Moved to the if-construct 
+;  below.
+;  (2022-12-25 by RNZ)
+;
+;  wavecal = mrdfits(ifile,1,/SILENT)
+;  spatcal = mrdfits(ifile,2,/SILENT)
+;
+;  if n_elements(ROTATE) ne 0 then begin
+;  
+;     wavecal = rotate(temporary(wavecal),rotate)
+;     spatcal = rotate(temporary(spatcal),rotate)
+;     
+;  endif
+;
   wctype = strtrim(fxpar(hdr,'WCTYPE'),2)
 
 ;  Get XD 1D wavelength solution 
@@ -116,16 +124,36 @@ pro mc_rdwavecal2d,ifile,wavecal,spatcal,wctype,xo2w,wdeg,odeg,homeorder, $
 
   norders = fxpar(hdr,'NORDERS')
   orders  = long( strsplit( fxpar(hdr,'ORDERS'), ',', /EXTRACT) )
-
-  wdisp = mc_fxpar(hdr,'DISP*')
-
+;
+;  The wavecal file generated for paltspec data does not have keywords 
+;  'DISP*'. Moved to the if-construct below.
+;  (2022-12-25 by RNZ)
+;
+;  wdisp = mc_fxpar(hdr,'DISP*')
+;
   if wxdeg+wydeg+sxdeg+sydeg gt 0 then begin
+;
+;  For paltspec data, both wavecal and spatcal arrays are stored in the 1st
+;  extension. And they have already been loaded above into tmp.
+;  (2022-12-25 by RNZ)
+;
+     wavecal = reform(tmp(*, *, 0))
+     spatcal = reform(tmp(*, *, 1))
 
+     wdisp = dblarr(norders,/NOZERO)
+     
      xy2w = dblarr((wxdeg+1)*(wydeg+1),norders,/NOZERO)
      xy2s = dblarr((sxdeg+1)*(sydeg+1),norders,/NOZERO)
      
      for i = 0,norders-1 do begin
-        
+;
+;  For paltspec data, keywords 'DISP*' do not exist. Use fxpar to avoid 
+;  halt and use /NAN to get !values.f_nan as return.
+;  (2022-12-25 by RNZ)
+;
+        dname = 'DISPO'+string(orders[i],format='(i2.2)')
+        wdisp[i] = fxpar(hdr,dname,/NAN)
+
         wname = 'OR'+string(orders[i],FORMAT='(i2.2)')+'WC*'
         sname = 'OR'+string(orders[i],FORMAT='(i2.2)')+'SC*'
         
@@ -135,10 +163,30 @@ pro mc_rdwavecal2d,ifile,wavecal,spatcal,wctype,xo2w,wdeg,odeg,homeorder, $
      endfor
 
   endif else begin
+;
+;  For uspex data, wavecal and spatcal arrays are stored in the 2nd and 
+;  the 3rd extentions respectively. And keywords 'DISP*' exist. 
+;  (2022-12-25 by RNZ)
+;
+     wavecal = mrdfits(ifile,1,/SILENT)
+     spatcal = mrdfits(ifile,2,/SILENT)
+
+     wdisp = mc_fxpar(hdr,'DISP*')
 
      xy2w = 0
      xy2s = 0
 
   endelse
+
+;
+;  For both cases, wavecal and spatcal arrays are loaded properly so far.
+;  (2022-12-25 by RNZ)
+;
+  if n_elements(ROTATE) ne 0 then begin
+    
+    wavecal = rotate(temporary(wavecal),rotate)
+    spatcal = rotate(temporary(spatcal),rotate)
+    
+  endif
   
 end
