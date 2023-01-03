@@ -1,0 +1,263 @@
+---Ximgtool----
+
+Ximgtool is resizable widget that can be used to view FITS images.  It
+can also be used to view any two-dimensional array.  Please see the
+program header to learn how to call ximgtool from the command line.
+Each menu along the top of the widget is described below and a summary
+of the cursor commands is given at the end.
+
+==============================================================================
+                                   Menus
+==============================================================================
+
+File:
+
+      Load FITS   -  The user can load a 2D FITS image into the current buffer.
+      New Frame   -  To select a new buffer and load a 2D FITS image into it.
+      Clear Frame -  To clear an image from the current buffer.
+      View Header -  Click to view the FITS header of the image in the current 
+                     buffer.
+      Write TIFF  -  Click to write the current displayed image to a TIFF image.
+      Write FITS  -  Click to write the currently displayed image to a 
+                     FITS file.
+      Quit        -  Click to quit ximgtool. 
+
+
+View:
+
+
+      Magnifier    -  Click to turn on/off the zoom window.
+      Panner       -  Click to turn on/off the pan window.  The user can click 
+                      inside the panner window to recenter the display.
+      Overplot     -  Click to turn off/on any overplots that have been 
+                      passed to ximgtool through the OVERPLOT keyword.
+      Mask         -  Click to turn off/on any masks that have been passed.
+      Lock Images  -  Click to lock the zoom and center pixels of all images 
+                      (if the images are of the same size).
+      Sexagesimal  -  Click to turn off/on the display of sexagesimal 
+                      coordinates.
+      DecDeg       -  Click to turn off/on the display of decimal degree
+                      coordinates.
+
+
+Zoom:
+
+      Center Image - To center the image.
+      Zoom In      - To zoom in by a factor of 2.
+      Zoom Out     - To zoom out by a factor of 2.
+      Zoom to Fit  - To zoom in/out so that the entire image fits in the display
+                  
+      None        - Load the raw image (rotate=0)
+      Flip X      - Rotate the image around the X axis (rotate=5)
+      Flip Y      - Rotate the image around the X axis (rotate=7)
+      -90         - Rotate the image -90 degrees (rotate=1)
+      -180        - Rotate the image -180 degrees (rotate=2)
+      -270        - Rotate the image -270 degrees (rotate=3)
+      Flip +XY    - Transpose the image around the +45 line (rotate=4)
+      Flip -XY    - Transpose the image around the -45 line (rotate=6)
+
+
+Range:
+
+
+      MinMax      -  Sets the upper and lower limits to the minimum and maximum 
+                     values of the image.
+      99.5-90%    -  Sets the upper and lower limits based on a histogram 
+                     of the data such 1-val% of the values are excluded.
+      ZScale      - Select to determine the range using the IRAF zscale routine.
+      User        -  Select so that the user can adjust the range manually.
+
+
+Scale:
+
+      Linear      - Set the colors distribution to Linear.
+      Sqrt        - Set the colors distribution to Sqrt.
+      Squared     - Set the colors distribution to Squared.
+      Log         - Set the colors distribution to Log.
+      Hist Eq     - Set the colors distribution by on a Histogram Equalization 
+                    algorithm.
+
+
+Color:
+
+      Grey        - Click to select a grey color map.
+      Blue        - Click to select a blue color map.
+      Rainbow     - Click to select a rainbow color map.
+      Heat        - Click to select a heat color map.
+      Green       - Click to select a green color map.
+      Invert      - To invert the color map.
+
+
+Buffer:
+
+      Buffer1-5     - To select a buffer to display
+      Buffer Math   - Click to perform math (+,-,*,/) on arrays in the buffers.
+      Blink Buffers - Click to blink between various buffers.  The user can 
+                      select which buffers are blinked, and automatically 
+                      blink between buffers with a delay time given by the user.
+
+Cursor:
+
+      Zoom       - Select to enter the Zoom mode.  Can also use 'z' to enter 
+                   this mode.
+
+                   'i'          - To zoom 'in'
+                   'o'          - To zoom 'out'
+                   't'          - To zoom-to-fit
+                        
+                   Left Mouse   - Click to center and zoom in.
+                   Middle Mouse - Click to center
+                   Right Mouse  - Click to center and zoom out.
+
+
+      Stretch    -  Select to enter the color stretch mode.  Use 's' to enter 
+                    mode.  Any mouse button can be used change the stretch.
+
+      Range      -  Select to enter the Range mode.  Can also use 'r' to enter 
+                    this mode.
+
+                    The user can draw a box by left-clicking, holding,
+                    and moving the cursor.  When the button is released,
+                    the range of the image is determined using only the
+                    pixels in the box.  The actual min and max values
+                    are determined using the method selected under the
+                    Range Menu Bar (MinMax, 99.5%, 99%, 98%, 95%).  Note
+                    that if 'User' is selected under the Range Menu Bar
+                    nothing will occur.
+
+                    The user can move the box by left-clicking INSIDE
+                    THE BOX, holding, and moving the cursor and can
+                    resize the box by clicking on the lower right hand
+                    corner of the box.  The image range will then be
+                    updated.  To compute the range using the entire
+                    image, type 'c'.
+
+
+      Image Exam -  Select to enter the Image Exam mode.  Must use 
+                    'd', 'l', 'm' to select which mode is actully used.
+
+                    'd' - The Distance Mode.
+
+                          The user can click, hold, and move and the
+                          distance between the starting position and
+                          current position are given.  Use the left
+                          mouse button to compute a distance along a
+                          diagonal, the middle mouse button to compute a
+                          distance along a column, and the right mouse
+                          button along a row.  Type 'c' to clear the
+                          display.
+
+                    'l' - The Line Cut Mode.
+
+                          The user can click, hold, and move to see a
+                          line cut (the data will be shown in xzoomplot,
+                          type ? to see the manual page.)  Use the left
+                          mouse button to compute a distance along a
+                          diagonal, the middle mouse button to compute a
+                          distance along a column, and the right mouse
+                          button along a row.  Type 'c' to clear the
+                          display.
+
+                    'm' - The Moments mode.
+
+                          The user can draw a box by left-clicking,
+                          holding, and moving the cursor.  When the
+                          button is released, the moments (e.g., mean,
+                          stddev, etc.)  of the pixels in the box are
+                          shown.
+
+                          The user can move the box by left-clicking
+                          INSIDE THE BOX, holding, and moving the cursor
+                          and can resize the box by clicking on the
+                          lower right hand corner of the box.  The image
+                          range will then be updated.  To compute the
+                          range using the entire image, type 'c'.
+
+
+============================================================================
+                             Cursor Commands
+============================================================================
+
+
+up arrow    - Moves the cursor up 1 pixel
+
+
+down arrow  - Moves the cursor down 1 pixel
+
+
+left arrow  - Moves the cursor left 1 pixel
+
+
+right arrow - Moves the cursor right 1 pixel
+
+(Note that these commands do not always work when the image is zoomed out).
+
+-           - To set the minimum value of the image range with the current 
+              pixel.  Must be in the Range cursor mode.
+
+
+= or +      - To set the maximum value of the image range with the current 
+              pixel.  Must be in the Range cursor mode.
+
+
+b           - To change to the previous buffer (back) selected in the 
+              Blink Menu.
+
+
+f           - To change to the next buffer (forward) selected in the Blink Menu.
+
+
+c           - To clear any current box or line.  The cursor mode remains 
+              in the current mode.
+
+
+l           - Type to perform a 'l'ine cut under the Image Exam Mode.
+              To perform a line cut in any direction, use the left-most
+              mouse button.  To perform a line cut along a column, use
+              the middle mouse button and to perform a line cut along a
+              row, use the right-most mouse button.  When the button is
+              released, aa plot window will appear with the line cut.
+              Please type 'h' in the plot window for the xzoomplot help
+              window.  The line can be move by selecting the end of the
+              line.
+
+
+m           - Type to compute the 'm'oments of a subset of pixels in the
+              Image Exam mode.  The user can draw a box by
+              left-clicking, holding, and moving the cursor.  When the
+              button is released, a window will appear with the moments
+              of the pixel values contained in the box.  The user can
+              move the box by left-clicking INSIDE THE BOX, holding, and
+              moving the cursor and can resize the box by clicking on
+              the lower right hand corner of the box.  When the user
+              releases the button, a *NEW* window will appear with the
+              moments of the pixels in the new box.  If the previous
+              moments window was not moved, the second window will
+              appear OVER the first.  To exit out of this mode, type
+              'c'.
+
+
+r           - Type to enter the 'r'ange mode.  The user can draw a box
+              by left-clicking, holding, and moving the cursor.  When
+              the button is released, the range of the image is
+              determined using only the pixels in the box.  The actual
+              min and max values are determined using the method
+              selected under the Range Menu Bar (MinMax, 99.5%, 99%,
+              98%, 95%).  Note that if 'User' is selected under the
+              Range Menu Bar nothing will occur.  
+
+              The user can move the box by left-clicking INSIDE THE BOX,
+              holding, and moving the cursor and can resize the box by
+              clicking on the lower right hand corner of the box.  The
+              image range will then be updated.  To compute the range
+              using the entire image, type 'c'.
+
+t           - To zoom in/out so that the entire image fits in the display area
+
+z           - Type to enter the 'z'oom mode, the default mode.  A single
+              click with the left mouse button will center the image at
+              the current position and zoom in by a factor of 2.  A
+              click on the center mouse button will center the image at
+              the current position and a single click with the
+              right-most mouse button with center the image at the
+              current position and zoom out by a factor of 2.

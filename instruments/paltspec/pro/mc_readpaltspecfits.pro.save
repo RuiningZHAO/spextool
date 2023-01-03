@@ -1,0 +1,228 @@
+;+
+; NAME:
+;     mc_readpaltspecfits
+;
+; PURPOSE:
+;     Reads multiple Palomar TSpec FITS images into memory.
+;
+; CATEGORY:
+;     File I/O
+;
+; CALLING SEQUENCE:
+;     mc_readpaltspecfits,files,data,hdrinfo,var,KEYWORDS=keywords,$
+;                         ROTATE=rotate,PAIR=PAIR,LINCORR=lincorr,$
+;                         WIDGET_ID=widget_id,NIMAGES=nimages,$
+;                         SATURATION=saturation,MASK=mask,CANCEL=cancel
+; INPUTS:
+;     files - A string of (fullpath) file names.
+;
+; OPTIONAL INPUTS:
+;     None
+;
+; KEYWORD PARAMETERS:
+;     KEYWORDS   - A string array of keywords to extract from the hdrs. 
+;     ROTATE     - Set to the desired IDL rotation command (ROTATE).
+;     PAIR       - Set to pair subtract.  Must be even number of input files.
+;     LINCORR     - Not functional, just there for consistency with the
+;                  SpeX version.
+;     WIDGET_ID  - If given, an pop-up error message will appear over
+;                  the widget.
+;     NIMAGES    - The number of images in the output data
+;     SATURATION - The saturation level in DN
+;     MASK       - If SATURATION is given, returns a integer array of
+;                  masks where 0=good 1=saturated 
+;     CANCEL     - Will be set on return if there is a problem
+;
+; OUTPUTS:
+;     Returns a floating array of images
+;
+; OPTIONAL OUTPUTS:
+;     hdrinfo - If KEYWORDS are given, an array of structures of the 
+;               requested hdr keywords for each image.  If no
+;               keywords are given, then all the keywords are
+;               returned in an array of structure.
+;     var     - A floating array of variance images is returned.
+;
+; COMMON BLOCKS:
+;     None
+;
+; SIDE EFFECTS:
+;     None
+;
+; RESTRICTIONS:
+;     Error propagation is hardwired for Palomar TripleSpec.
+;
+; PROCEDURE:
+;     Images are read in, pair subtracted if requested, and
+;     variances images are computed if requested.
+;
+; EXAMPLE:
+;     None
+;
+; MODIFICATION HISTORY:
+;     2008 - Written by M. Cushing, Institute for Astronomy,
+;            University of Hawaii
+;
+;-
+pro mc_readpaltspecfits,files,data,hdrinfo,var,KEYWORDS=keywords,ROTATE=rotate,$
+                        PAIR=PAIR,LINCORR=lincorr,WIDGET_ID=widget_id,$
+                        NIMAGES=nimages,SATURATION=saturation,MASK=mask,$
+                        CANCEL=cancel
+
+  cancel  = 0
+  
+;  Check parameters
+  
+  if n_params() lt 1 then begin
+     
+     print, 'Syntax - mc_readpaltspecfits,files,data,hdrinfo,var,$'
+     print, '                             KEYWORDS=keywords,ROTATE=rotate,$'
+     print, '                             PAIR=PAIR,LINCORR=lincorr,$'
+     print, '                             WIDGET_ID=widget_id,NIMAGES=nimages,$'
+     print, '                             SATURATION=saturation,MASK=mask,$'
+     print, '                             CANCEL=cancel'
+     cancel = 1
+     return
+     
+  endif
+  cancel = cpar('mc_readpaltspecfits',files,1,'Files',7,[0,1])
+  if cancel then return
+  
+;  Get setup info.
+  
+  dovar     = (arg_present(var) eq 1) ? 1:0
+  dosat     = (n_elements(SATURATION) ne 0) ? 1:0
+  
+  readnoise = 10.23
+  rot       = (n_elements(ROTATE) ne 0) ? rotate:0
+  
+;  Get number of images and check to make sure even number if /PAIR.
+  
+  nfiles = n_elements(files)
+  if keyword_set(PAIR) then begin
+     
+     result = crange(nfiles,0,'Number of Files',/EVEN, $
+                     WIDGET_ID=widget_id,CANCEL=cancel)
+     if cancel then return
+     nimages = nfiles/2
+     
+  endif else nimages = nfiles
+  
+;  Get size of images, itime, coadds, and ndrs from header.
+  
+  testhdr  = headfits(files[0])
+  NAXIS1   = fxpar(testhdr,'NAXIS1')
+  NAXIS2   = fxpar(testhdr,'NAXIS2')
+  ITIME    = fxpar(testhdr,'EXPTIME')
+  NDRS     = fxpar(testhdr,'FSAMPLE')
+  gain     = fxpar(testhdr,'GAIN')
+  READTIME = 1.271  
+  READTIME = 3.813  
+  COADDS   = 1
+
+  divisor = float(COADDS*NDRS)
+  rdvar   = (2.*readnoise^2)/NDRS/COADDS/ITIME^2/gain^2
+  crtn    = (1.0 - READTIME*(NDRS^2 -1.0)/3./ITIME/NDRS)
+  
+;  Make data arrays.
+  
+  data               = fltarr(NAXIS1,NAXIS2,nimages,/NOZERO)
+  hdrinfo            = replicate(mc_gethdrinfo(testhdr,keywords),nfiles)
+   
+  if dovar then var  = fltarr(NAXIS1,NAXIS2,nimages)
+  if dosat then mask = intarr(NAXIS1,NAXIS2,nimages)
+  
+;  Read images
+  
+  if keyword_set(PAIR) then begin
+     
+     for i = 0, nimages-1 do begin
+        
+;        Aimage = tspec_clean(files[i*2],A_hdr,/SILENT)
+;        Bimage = tspec_clean(files[i*2+1],B_hdr,/SILENT)
+
+
+        Aimage = readfits(files[i*2],A_hdr,/SILENT)
+        Bimage = readfits(files[i*2+1],B_hdr,/SILENT)
+
+        if dosat then begin
+           
+           msk = (Aimage gt float(SATURATION)) or (Bimage gt float(SATURATION))
+           mask[*,*,i] = rotate(msk,rot)
+           
+        endif
+        
+        Aimage = rotate(temporary(Aimage*divisor),rot)
+        Bimage = rotate(temporary(Bimage*divisor),rot)
+
+        dif = Aimage-Bimage
+        
+        for j = 0,7 do begin
+
+
+           mc_histogram,dif[0:1023,(j*128):(j+1)*128-1],histx,histy,BINSIZE=1
+           max = max(histy,idx)
+           mode = histx[idx]
+
+;           window, 2
+;           mc_plothist,histx,histy,/XSTY,/YSTY,XRANGE=[-50,50]
+;           plots,[mode,mode],!y.crange,COLOR=2
+;           re =  ' '
+;           read, re
+
+           dif[0:1023,(j*128):(j+1)*128-1] = $
+              dif[0:1023,(j*128):(j+1)*128-1] - mode
+
+        endfor
+
+        data[*,*,i] = (dif)/divisor/ITIME
+        
+        if dovar then var[*,*,i]=abs((Aimage+Bimage))*crtn/$
+                                 NDRS/(COADDS^2)/(ITIME^2)/gain + 2.*rdvar
+        
+        ahdrinfo = mc_gethdrinfo(A_hdr,keywords)
+;        ahdrinfo.vals.FILENAME = file_basename(files[i*2])
+        
+        bhdrinfo = mc_gethdrinfo(B_hdr,keywords)
+;        bhdrinfo.vals.FILENAME = file_basename(files[i*2+1])
+        
+        copy_struct_inx,ahdrinfo,hdrinfo,index_to=i*2
+        copy_struct_inx,bhdrinfo,hdrinfo,index_to=i*2+1
+        
+     endfor
+     
+  endif
+  
+  if not keyword_set(PAIR) then begin
+     
+     for i = 0, nimages-1 do begin
+        
+;        image = tspec_clean(files[i],hdr,/SILENT)
+        image = readfits(files[i],hdr,/SILENT)/divisor
+
+        if dosat then mask[*,*,i] = rotate(image gt float(SATURATION),rot)
+        
+        image = rotate(temporary(image)*divisor,rot)    
+        
+        data[*,*,i] = image/divisor/ITIME
+        
+        if dovar then var[*,*,i] = abs(image)*crtn/NDRS/COADDS^2/ITIME^2/gain+$
+                                   rdvar 
+        
+        thdrinfo = mc_gethdrinfo(hdr,keywords)
+;        thdrinfo.vals.FILENAME = file_basename(files[i])
+        
+        copy_struct_inx,thdrinfo,hdrinfo,index_to=i
+        
+     endfor
+     
+  endif
+  
+end
+
+
+
+
+
+
+

@@ -1,0 +1,107 @@
+---Xvspec----
+
+Xvspec is a resizable widget that displays spectra extracted using Spextool. 
+
+The widget can be started from the command line as:
+
+   IDL> xvspec,POSITION=position,FWHM=fwhm,VMODE=vmode,PLOTLINMAX=plotlinmax,$
+               PLOTREPLACE=plotreplace,PLOTFIX=plotfix,CANCEL=cancel
+
+   IDL> xvspec,afile,POSITION=position,VMODE=vmode,FWHM=fwhm,$
+               PLOTLINMAX=plotlinmax,PLOTREPLACE=plotreplace,PLOTFIX=plotfix,$
+	       CANCEL=cancel
+
+   IDL> xvspec,afile,bfile,POSITION=position,VMODE=vmode,FWHM=fwhm,$
+               PLOTLINMAX=plotlinmax,PLOTREPLACE=plotreplace,PLOTFIX=plotfix,$
+	       CANCEL=cancel
+
+where,
+
+   afile - A string giving the filename of a SpeX spectral FITS image.
+   bfile - A string giving the filename of a SpeX spectral FITS image.
+           However, the bfile must be nearly identical to the afile.  That
+	   is, it must effectively be the "B Beam" extraction of a pair
+	   subtracted extraction. 
+
+Buttons:
+
+   File:
+
+     Load FITS                : Loads a Spextool FITS image
+                                (keyboard command 'l')
+     View Header              : To view the FITS header
+     Write Spextool FITS File : To write a spextool FITS file to disk.
+     Write ASCII File         : To write an ASCII file to disk.
+
+   Mode:
+
+     Ladder     : To plot orders one on top of another.
+     Continuous : To plot the orders continuously on a single plot.
+
+   Buffer:
+
+     A Buffer :  Plot the A buffer spectrum.
+     B Buffer :  Plot the B buffer spectrum.	
+
+   Spectrum:    
+
+     Flux           : View the flux spectrum (keyboard command 'f')
+     Error          :  View the error spectrum (keyboard command 'e')
+     S/N            : View the S/N spectum (keyboard command 's')
+
+   Order:  
+
+     Used to select which order to center the view on.
+
+   Aperture:  
+
+     Used to select which aperture to view.
+
+   Units:
+
+     Wavelength     : Choose from various wavelength units.
+     Flux Density   : Choose from various flux (density) units.
+
+   Flags:
+
+     Lincor Max Pixel :  Set to plot pixels over the linearity
+                         correction maxmimum value.
+     Replace Pixel    :  Set to plot pixels that were replaced by xspextool.
+     Fixed Pixel      :  Set to plot pixels that were fixed by xcleanspec.
+
+   Plot: 
+
+     X log             :  Set for a logarithmic X axis.
+     Y log             :  Set for a logarithmic Y axis.
+     Fix Y Range       :  Set to fix the Y range.  This can be useful when 
+                          switching between aperture.
+     Normalize Spectra :  To normalized the spectra by the median value.
+		       
+
+   Tools:  
+
+     Smooth         :  Set to a value in order to boxcar smooth the data.
+                       Set to zero to return to the default value.
+
+Keyboard Commands:
+
+   'a':  to view the A buffer spectrum
+
+   'b':  to view the B buffer spectrum
+
+   'u':  to view the error spectrum
+
+   'f':  to view the flux spectrum
+
+   'l':  to load a FITS file
+
+   's':  to view the S/N spectrum
+
+   'v':  to view the FITS header
+
+   'q':  to quite xvspec
+
+Cursor Commands:
+
+   Click on an order to zoom in on the order.  Type 'h' in the new plot
+   window for the cursor commands.
